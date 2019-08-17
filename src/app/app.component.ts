@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { map } from "rxjs/operators";
 
 @Component({
   selector: "app-root",
@@ -11,7 +12,9 @@ export class AppComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.onFetchPosts();
+  }
 
   onCreatePost(postData: { title: string; content: string }) {
     /* 
@@ -33,7 +36,30 @@ export class AppComponent implements OnInit {
   }
 
   onFetchPosts() {
-    // Send Http request
+    this.http
+      .get("https://ng-course-c2f2f.firebaseio.com/posts.json")
+      /*
+      - We are using rxjs operators which are methods that you can use on Observables (and Subjects) that allow you to 
+        change the original observable in some manner and return a new observable. 
+      - Thus in our case we are changing our incoming respData from an object to an array of objects with a specific key. We use 
+        the map operator to loop through all the objects in our data base, transform them into the format we want, push 
+        into a newly created array, and then return that array. 
+      - rxjs Observable Operators allow us to to modify the data, and return new data, all will still returning an observable.
+      */
+      .pipe(
+        map(respData => {
+          const postsArray = [];
+          for (const key in respData) {
+            if (respData.hasOwnProperty(key)) {
+              postsArray.push({ id: key, ...respData[key] });
+            }
+          }
+          return postsArray;
+        })
+      )
+      .subscribe(respData => {
+        console.log(respData);
+      });
   }
 
   onClearPosts() {
