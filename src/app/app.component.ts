@@ -1,5 +1,4 @@
 import { Component, OnInit } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
 import { Post } from "./post.model";
 import { PostsService } from "./posts.service";
 
@@ -11,8 +10,9 @@ import { PostsService } from "./posts.service";
 export class AppComponent implements OnInit {
   loadedPosts: Post[] = [];
   isFetching = false;
+  hasError = null;
 
-  constructor(private http: HttpClient, private PostsService: PostsService) {}
+  constructor(private PostsService: PostsService) {}
 
   ngOnInit() {
     this.onFetchPosts();
@@ -30,10 +30,16 @@ export class AppComponent implements OnInit {
 
   onFetchPosts() {
     this.isFetching = true;
-    this.PostsService.fetchPosts().subscribe(respData => {
-      this.loadedPosts = respData;
-      this.isFetching = false;
-    });
+    this.PostsService.fetchPosts().subscribe(
+      respData => {
+        this.loadedPosts = respData;
+        this.isFetching = false;
+      },
+      error => {
+        this.hasError = error;
+        console.log(error);
+      }
+    );
   }
 
   onClearPosts() {
