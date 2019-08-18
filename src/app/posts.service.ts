@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { map } from "rxjs/operators";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { map, catchError } from "rxjs/operators";
+import { throwError } from "rxjs";
 import { Post } from "./post.model";
 
 @Injectable({
@@ -31,7 +32,13 @@ export class PostsService {
     return (
       this.http
         .get<{ [key: string]: Post }>(
-          "https://ng-course-c2f2f.firebaseio.com/posts.json"
+          "https://ng-course-c2f2f.firebaseio.com/posts.json",
+          /*
+            - This is how you would send custom headers along with an HTTP request. Headers is just an object that gets passed
+              as an argument with the value being a new HTTPHeaders that must be imported from @angular/common/http. Inside the 
+              new HttpHeaders object we can now send as many custom headers as we need with the request.
+          */
+          { headers: new HttpHeaders({ "Custom-Header": "Testing-Headers" }) }
         )
         /*
       - We are using rxjs operators which are methods that you can use on Observables (and Subjects) that allow you to 
@@ -50,6 +57,14 @@ export class PostsService {
               }
             }
             return postsArray;
+          }),
+          // catchError is an operator provided from rxjs that allows you to catch the error before it reaches the subscribe function.
+          // It's important to remember that catchError is an operator and so it MUST return an observable to reach the subscribe function.
+          // With throwError we can return an observable, and thus catch our error in our subscribe function.
+          catchError(error => {
+            // send to analytics server or do any kind of logic with the error and send the clean after logic response to the component
+            // where the subscribe function is occurring.
+            return throwError(error);
           })
         )
     );

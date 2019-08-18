@@ -18,6 +18,11 @@ export class AppComponent implements OnInit {
     this.onFetchPosts();
   }
 
+  handleDismiss() {
+    this.isFetching = false;
+    this.hasError = null;
+  }
+
   onCreatePost(postData: Post) {
     this.PostsService.createAndStorePosts(
       postData.title,
@@ -37,7 +42,6 @@ export class AppComponent implements OnInit {
       },
       error => {
         this.hasError = error;
-        console.log(error);
       }
     );
   }
