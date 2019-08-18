@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs/operators";
+import { Post } from "./post.model";
 
 @Component({
   selector: "app-root",
@@ -8,7 +9,7 @@ import { map } from "rxjs/operators";
   styleUrls: ["./app.component.css"]
 })
 export class AppComponent implements OnInit {
-  loadedPosts = [];
+  loadedPosts: Post[] = [];
 
   constructor(private http: HttpClient) {}
 
@@ -16,7 +17,7 @@ export class AppComponent implements OnInit {
     this.onFetchPosts();
   }
 
-  onCreatePost(postData: { title: string; content: string }) {
+  onCreatePost(postData: Post) {
     /* 
     -Send Http request
     -In angular HTTP requests return Observables and so to make requests and receive responses we must subscribe to them.
@@ -24,7 +25,7 @@ export class AppComponent implements OnInit {
     provided by angular so it will manage the unsubscribing of the observable.
     */
     this.http
-      .post(
+      .post<{ name: string }>(
         // adding the .json at the end is only a firebase requirement not a REST api requirement.
         "https://ng-course-c2f2f.firebaseio.com/posts.json",
         // this is the request body that we are passing onto/
@@ -37,7 +38,9 @@ export class AppComponent implements OnInit {
 
   onFetchPosts() {
     this.http
-      .get("https://ng-course-c2f2f.firebaseio.com/posts.json")
+      .get<{ [key: string]: Post }>(
+        "https://ng-course-c2f2f.firebaseio.com/posts.json"
+      )
       /*
       - We are using rxjs operators which are methods that you can use on Observables (and Subjects) that allow you to 
         change the original observable in some manner and return a new observable. 
@@ -48,7 +51,7 @@ export class AppComponent implements OnInit {
       */
       .pipe(
         map(respData => {
-          const postsArray = [];
+          const postsArray: Post[] = [];
           for (const key in respData) {
             if (respData.hasOwnProperty(key)) {
               postsArray.push({ id: key, ...respData[key] });
@@ -58,7 +61,7 @@ export class AppComponent implements OnInit {
         })
       )
       .subscribe(respData => {
-        console.log(respData);
+        this.loadedPosts = respData;
       });
   }
 
